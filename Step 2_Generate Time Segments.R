@@ -45,18 +45,21 @@ dat.list2<- df.to.list(dat.long)
 
 ngibbs = 10000
 
+#priors
+alpha=0.01
+
 ## Run Gibbs sampler
 plan(multisession)  #run all MCMC chains in parallel
                     #select "multiprocess" if Unix or macOS & "multisession" if Windows
                     #refer to future::plan() for more details
 
-dat.res<- space_segment(data = dat.list2, ngibbs = ngibbs)
+dat.res<- space_segment(data = dat.list2, ngibbs = ngibbs, alpha = alpha)
 ###Takes 8 min to run for 10000 iterations for all IDs
 
 
 ## Traceplots
 #type is either 'nbrks' or 'LML' for y-axis label
-identity<- unique(dat.long$id)
+identity<- names(dat.list2)
 
 traceplot(data = dat.res$nbrks, type = "nbrks", identity = identity)
 traceplot(data = dat.res$LML, type = "LML", identity = identity)

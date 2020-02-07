@@ -1,10 +1,7 @@
-gibbs.time.seg=function(data, ngibbs) {
+gibbs.time.seg=function(data, ngibbs, alpha) {
   set.seed(1)
   
   uni.id=unique(data$id)
-  
-  #priors
-  alpha=0.01
   
   #to store results
   res.brks=vector("list", ngibbs)
@@ -50,10 +47,11 @@ gibbs.time.seg=function(data, ngibbs) {
 
 
 #----------------------------------------------------
-space_segment=function(data, ngibbs) {
+space_segment=function(data, ngibbs, alpha) {
   
   tic()  #start timer
-  mod<- future_map(data, function(x) gibbs.time.seg(data = x, ngibbs = ngibbs), .progress = TRUE)
+  mod<- future_map(data, function(x) gibbs.time.seg(data = x, ngibbs = ngibbs, alpha = alpha),
+                   .progress = TRUE)
   toc()  #provide elapsed time
   
   
