@@ -53,7 +53,7 @@ traceplot=function(data, type, identity) {  #create traceplots for nbrks or LML 
     par(ask=TRUE)
     plot(x=1:ngibbs, y=data[i,-1], type = "l", xlab = "Iteration",
          ylab = ifelse(type == "nbrks", "# of Breakpoints", "Log Marginal Likelihood"),
-         main = paste("ID",levels(identity)[data[i,1]]))
+         main = paste("ID",identity[i]))
   }
   on.exit(par(ask = FALSE))
 }
