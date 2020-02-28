@@ -15,7 +15,7 @@ source('gibbs sampler.R')
 #### Load and Prepare Data ####
 ###############################
 
-dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
+dat<- read.csv("Snow Leopard Gridded Data.csv", header = T, sep = ",")
 
 #remove IDs w < 3 occupied grid cells
 dat.ex<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) < 3) %>% ungroup()
@@ -54,7 +54,7 @@ plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
 dat.res<- space_segment(data = dat.list2, ngibbs = ngibbs, alpha = alpha)
-###Takes 8 min to run for 10000 iterations for all IDs
+###Takes 12 min to run for 10000 iterations for all IDs
 
 
 ## Traceplots
