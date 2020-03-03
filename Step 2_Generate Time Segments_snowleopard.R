@@ -15,7 +15,7 @@ source('gibbs sampler.R')
 #### Load and Prepare Data ####
 ###############################
 
-dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
+dat<- read.csv("Snow Leopard Gridded Data.csv", header = T, sep = ",")
 
 #remove IDs w < 3 occupied grid cells
 dat.ex<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) < 3) %>% ungroup()
@@ -85,5 +85,5 @@ dat_out<- rbind(dat_out, dat.ex)  #bring back in excluded data occupying < 3 cel
 dat_out<- dat_out[order(dat_out$id, dat_out$date),]  #reorder DF by id and date
 
 setwd("~/Documents/Snail Kite Project/Data/R Scripts/ValleLabUF/activcenter_subset_locations")
-write.csv(dat_out, "Snail Kite Gridded Data_TOHO.csv", row.names = F)
+write.csv(dat_out, "Snow Leopard Gridded Data.csv", row.names = F)
 
