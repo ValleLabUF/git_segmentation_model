@@ -18,12 +18,12 @@ source('gibbs sampler.R')
 dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
 
 #remove IDs w < 3 occupied grid cells
-dat.ex<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) < 3) %>% ungroup()
+dat.ex<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) < 2) %>% ungroup()
 dat.ex.list<- df.to.list(dat = dat.ex)
 dat.ex.list<- map(dat.ex.list, function(x) x %>% mutate(time1 = 1:length(x)))  #add row for obs #
 dat.ex<- map_dfr(dat.ex.list, `[`) %>% mutate(tseg = 1)
 
-dat<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) >= 3) %>% ungroup()
+dat<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) >= 2) %>% ungroup()
 dat.list<- df.to.list(dat = dat)
 dat.list<- map(dat.list, function(x) x %>% mutate(time1 = 1:length(x)))  #add row for obs #
 
@@ -46,7 +46,7 @@ dat.list2<- df.to.list(dat.long)
 ngibbs = 10000
 
 #priors
-alpha=0.01
+alpha=1  #changed from 0.01
 
 ## Run Gibbs sampler
 plan(multisession)  #run all MCMC chains in parallel
@@ -85,5 +85,5 @@ dat_out<- rbind(dat_out, dat.ex)  #bring back in excluded data occupying < 3 cel
 dat_out<- dat_out[order(dat_out$id, dat_out$date),]  #reorder DF by id and date
 
 setwd("~/Documents/Snail Kite Project/Data/R Scripts/ValleLabUF/activcenter_subset_locations")
-write.csv(dat_out, "Snail Kite Gridded Data_TOHO.csv", row.names = F)
+write.csv(dat_out, "Snail Kite Gridded Data_TOHO15km.csv", row.names = F)
 

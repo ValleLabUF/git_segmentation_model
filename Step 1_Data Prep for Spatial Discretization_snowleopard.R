@@ -38,61 +38,101 @@ afg <- ne_states(country = "Afghanistan", returnclass = "sf") %>%
 rivers10 <- ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical',
                         returnclass = "sf")
 rivers10<- sf::st_transform(rivers10, crs = "+init=epsg:32643") %>%
-  sf::st_crop(xmin = min(dat$x-11000), xmax = max(dat$x+11000),
-              ymin = min(dat$y-11000), ymax = max(dat$y+11000))
+  sf::st_crop(xmin = min(dat$x-21000), xmax = max(dat$x+21000),
+              ymin = min(dat$y-21000), ymax = max(dat$y+21000))
 
 
 ##########################################################
 #### Create Grid to Discretize Space ####
 ##########################################################
 
-res.function.optim=function(param, dat.spdf, crs){
-  quant = param[1]
+
+res.function=function(quant, dat.spdf, crs){
   
-  #Set resolution as some quantile of SL
-  res<- quantile(sqrt(dat.spdf$R2n), quant, na.rm = T)
+  # grid.list<- list()
   
+  grid.res<- matrix(NA, length(quant), 3)
+  colnames(grid.res)<- c("res","n.cells", "n.length")
+  grid.res[,1]<- quantile(sqrt(dat.spdf$R2n), quant, na.rm = T)
   
-  # create grid
-  grid<- raster(extent(dat.spdf) + (2*res))
-  res(grid)<- res
-  proj4string(grid)<- crs
-  grid[]<- 0
-  
-  time.series<- list()
-  for(i in 1:length(unique(dat.spdf$id))) {
+  for (i in 1:length(quant)) {
+    #Set resolution as some quantile of displacement
+    res<- quantile(sqrt(dat.spdf$R2n), quant[i], na.rm = T)
     
-    time.series[[i]]<- cellFromXY(grid, subset(dat.spdf, id == unique(dat.spdf$id)[i]))
+    # create grid
+    grid<- raster(extent(dat.spdf) + (2*res))
+    res(grid)<- res
+    proj4string(grid)<- crs
+    grid[]<- 0
+    
+    
+    time.series<- list()
+    for(j in 1:length(unique(dat.spdf$id))) {
+      
+      time.series[[j]]<- cellFromXY(grid, subset(dat.spdf, id == unique(dat.spdf$id)[j]))
+    }
+    
+    ind.occup.cells<- sum(sapply(time.series, function(x) length(unique(x))) > 2)
+    all.occup.cells<- unlist(time.series) %>% unique() %>% length()
+    
+    n.cells<- time.series %>% 
+      lapply(., function(x) length(unique(x))) %>% 
+      unlist() %>% 
+      median()
+    
+    n.length<- lapply(time.series, rle) %>%
+      lapply(., '[[', 1) %>%
+      lapply(., median) %>% 
+      unlist() %>% 
+      median()
+    
+    # grid.list[[i]]<- ifelse(all.occup.cells < 2000 &
+    #                           (all.occup.cells/ncell(grid)) >= 0.1 &
+    #                           (ind.occup.cells/length(time.series)) >= 0.75 &
+    #                           (ind.n.length/length(time.series)) >= 0.75,
+    #                         quant[i],
+    #                         NA)
+    
+    grid.res[i,2]<- n.cells
+    grid.res[i,3]<- n.length
   }
   
-  
-  ts.length<- lapply(time.series, rle) %>% 
-    lapply(., '[[', 1) %>% 
-    unlist() %>% 
-    mean()
-  
-  n.length<- lapply(time.series, rle) %>% 
-    lapply(., '[[', 1) %>%
-    lapply(., function(x) length(which(x > 10))) %>% 
-    unlist() %>% 
-    mean()
-  
-  -ts.length * n.length
+  # ind<- unlist(grid.list)
+  # c(min(ind, na.rm = T), max(ind, na.rm = T))
+  grid.res
 }
 
-snwlpd.test<- optim(par = 0.5, fn = res.function.optim, dat.spdf = dat.spdf, lower = 0.1,
-                    upper = 0.999, crs = CRS("+init=epsg:32643"), method = "Brent")
+
+quant<- seq(0.01, 1.0, length.out = 100)
+quant.range<- res.function(quant = quant, dat.spdf = dat.spdf, crs = proj4string(dat.spdf))
+quant.range[,2]<- quant.range[,2]/max(quant.range[,2])
+quant.range[,3]<- quant.range[,3]/max(quant.range[,3])
+
+quant.range<- quant.range %>%
+  data.frame() %>%
+  mutate(dist = sqrt((n.cells-0)^2 + (n.length-0)^2))
+
+ggplot() +
+  geom_point(data = quant.range, aes(x=n.cells, y=n.length, color = dist), size = 2,
+             alpha = 0.8) +
+  geom_line(data = quant.range[c(1,100),], aes(x=n.cells, y=n.length)) +
+  coord_equal() +
+  scale_color_viridis_c(direction = -1) +
+  theme_bw()
+
+quant.range2<- quant.range %>% top_n(n=-10, wt=dist)  #9.2 - 21.2 km
 
 
 
-quant<- snwlpd.test$par
 
 
-#Set resolution as 99.5% quantile of SL
-res<- quantile(sqrt(dat$R2n), quant, na.rm = T)  #4.5 km
 
 
-# 4.5 km w 1 cell buffer
+#Set resolution
+res<- 10000  #min value of rnage
+
+
+# 10 km w 1 cell buffer
 grid<- raster(extent(dat.spdf) + (2*res))
 res(grid)<- res
 proj4string(grid)<- CRS("+init=epsg:32643")
@@ -121,8 +161,8 @@ names(grid_f)[3]<- "count"
 ggplot() +
   geom_sf(data = afg) +
   geom_sf(data = rivers10, color = "lightblue", alpha = 0.65, lwd = 5) +
-  coord_sf(xlim = c(min(dat$x-10000), max(dat$x+10000)),
-           ylim = c(min(dat$y-10000), max(dat$y+10000)), expand = FALSE) +
+  coord_sf(xlim = c(min(dat$x-20000), max(dat$x+20000)),
+           ylim = c(min(dat$y-20000), max(dat$y+20000)), expand = FALSE) +
   geom_path(data = borders_f, aes(x=long, y=lat, group=group), size=0.25) +
   geom_point(data = dat, aes(x=x, y=y, fill=as.factor(id)), pch = 21, size=1.5, alpha=0.5) +
   scale_fill_viridis_d("ID", alpha = 0.6) +
