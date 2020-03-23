@@ -17,7 +17,7 @@ source('gibbs sampler.R')
 
 dat<- read.csv("Snail Kite Gridded Data_TOHO.csv", header = T, sep = ",")
 
-#remove IDs w < 3 occupied grid cells
+#remove IDs w < 2 occupied grid cells
 dat.ex<- dat %>% group_by(id) %>% filter(length(unique(grid.cell)) < 2) %>% ungroup()
 dat.ex.list<- df.to.list(dat = dat.ex)
 dat.ex.list<- map(dat.ex.list, function(x) x %>% mutate(time1 = 1:length(x)))  #add row for obs #
@@ -54,7 +54,7 @@ plan(multisession)  #run all MCMC chains in parallel
                     #refer to future::plan() for more details
 
 dat.res<- space_segment(data = dat.list2, ngibbs = ngibbs, alpha = alpha)
-###Takes 12 min to run for 10000 iterations for all IDs
+###Takes 3 min to run for 10000 iterations for 18 IDs
 
 
 ## Traceplots
@@ -81,7 +81,7 @@ plot.heatmap(data = dat.list2, brkpts = brkpts, dat.res = dat.res, type = "loc")
 
 
 dat_out<- map(dat.list, assign.time.seg, brkpts = brkpts) %>% map_dfr(`[`)  #assign time seg and make as DF
-dat_out<- rbind(dat_out, dat.ex)  #bring back in excluded data occupying < 3 cells
+dat_out<- rbind(dat_out, dat.ex)  #bring back in excluded data occupying < 2 cells
 dat_out<- dat_out[order(dat_out$id, dat_out$date),]  #reorder DF by id and date
 
 setwd("~/Documents/Snail Kite Project/Data/R Scripts/ValleLabUF/activcenter_subset_locations")

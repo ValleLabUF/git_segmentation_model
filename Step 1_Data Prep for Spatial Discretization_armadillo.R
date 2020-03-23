@@ -74,7 +74,7 @@ res(grid_200N)<- 200
 proj4string(grid_200N)<- CRS("+init=epsg:32721")
 
 grid_200N[]<- 0
-dat.N$grid.cell<- cellFromXY(grid_200N, dat.N.spdf)
+dat.N$grid.cell<- cellFromXY(grid_200N, dat.N[,c("x","y")])
 
 
 ## Plot all points over grid
@@ -127,7 +127,7 @@ res(grid_100S)<- 100
 proj4string(grid_100S)<- CRS("+init=epsg:32721")
 
 grid_100S[]<- 0
-dat.S$grid.cell<- cellFromXY(grid_100S, dat.S.spdf)
+dat.S$grid.cell<- cellFromXY(grid_100S, dat.S[,c("x","y")])
 
 
 ## Plot all points over grid

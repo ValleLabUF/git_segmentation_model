@@ -131,7 +131,7 @@ res(grid)<- res
 proj4string(grid)<- CRS("+init=epsg:32617")
 
 grid[]<- 0
-dat$grid.cell<- cellFromXY(grid, dat.spdf)
+dat$grid.cell<- cellFromXY(grid, dat[,c("x","y")])
 
 ### Write to CSV for further analysis
 write.csv(dat, "Snail Kite Gridded Data_TOHO.csv", row.names = F)

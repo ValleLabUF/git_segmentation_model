@@ -17,6 +17,7 @@ library(adehabitatLT)
 #####################
 
 dat<- read.csv("Modified Snow Leopard Data.csv", header = T, sep = ",")
+levels(dat$id)[4:5]<- "Pari"
 
 #explore
 str(dat)
@@ -115,7 +116,6 @@ quant.range<- quant.range %>%
 ggplot() +
   geom_point(data = quant.range, aes(x=n.cells, y=n.length, color = dist), size = 2,
              alpha = 0.8) +
-  geom_line(data = quant.range[c(1,100),], aes(x=n.cells, y=n.length)) +
   coord_equal() +
   scale_color_viridis_c(direction = -1) +
   theme_bw()
@@ -129,16 +129,16 @@ quant.range2<- quant.range %>% top_n(n=-10, wt=dist)  #9.2 - 21.2 km
 
 
 #Set resolution
-res<- 10000  #min value of rnage
+res<- 7000  #min value of rnage
+buffer<- 2*res
 
-
-# 10 km w 1 cell buffer
-grid<- raster(extent(dat.spdf) + (2*res))
+# 7 km w 1 cell buffer
+grid<- raster(extent(dat.spdf) + buffer)
 res(grid)<- res
 proj4string(grid)<- CRS("+init=epsg:32643")
 
 grid[]<- 0
-dat$grid.cell<- cellFromXY(grid, dat.spdf)
+dat$grid.cell<- cellFromXY(grid, dat[,c("x","y")])
 
 ### Write to CSV for further analysis
 write.csv(dat, "Snow Leopard Gridded Data.csv", row.names = F)
@@ -161,8 +161,8 @@ names(grid_f)[3]<- "count"
 ggplot() +
   geom_sf(data = afg) +
   geom_sf(data = rivers10, color = "lightblue", alpha = 0.65, lwd = 5) +
-  coord_sf(xlim = c(min(dat$x-20000), max(dat$x+20000)),
-           ylim = c(min(dat$y-20000), max(dat$y+20000)), expand = FALSE) +
+  coord_sf(xlim = c(min(dat$x-buffer), max(dat$x+buffer)),
+           ylim = c(min(dat$y-buffer), max(dat$y+buffer)), expand = FALSE) +
   geom_path(data = borders_f, aes(x=long, y=lat, group=group), size=0.25) +
   geom_point(data = dat, aes(x=x, y=y, fill=as.factor(id)), pch = 21, size=1.5, alpha=0.5) +
   scale_fill_viridis_d("ID", alpha = 0.6) +
@@ -174,8 +174,8 @@ ggplot() +
 ggplot() +
   geom_sf(data = afg) +
   geom_sf(data = rivers10, color = "lightblue", alpha = 0.65, lwd = 5) +
-  coord_sf(xlim = c(min(dat$x-10000), max(dat$x+10000)),
-           ylim = c(min(dat$y-10000), max(dat$y+10000)), expand = FALSE) +
+  coord_sf(xlim = c(min(dat$x-buffer), max(dat$x+buffer)),
+           ylim = c(min(dat$y-buffer), max(dat$y+buffer)), expand = FALSE) +
   geom_tile(data=grid_f, aes(x=x, y=y, fill=count)) +
   geom_path(data = borders_f, aes(x=long, y=lat, group=group), size=0.25) +
   scale_fill_viridis_c("# of Observations", alpha = 0.6) +
@@ -187,8 +187,8 @@ ggplot() +
 ggplot() +
   geom_sf(data = afg) +
   geom_sf(data = rivers10, color = "lightblue", alpha = 0.65, lwd = 5) +
-  coord_sf(xlim = c(min(dat$x-10000), max(dat$x+10000)),
-           ylim = c(min(dat$y-10000), max(dat$y+10000)), expand = FALSE) +
+  coord_sf(xlim = c(min(dat$x-buffer), max(dat$x+buffer)),
+           ylim = c(min(dat$y-buffer), max(dat$y+buffer)), expand = FALSE) +
   geom_path(data = dat, aes(x=x, y=y, color = id), size = 0.5) +
   scale_color_viridis_d("") +
   labs(x = "Longitude", y = "Latitude") +
