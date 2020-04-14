@@ -49,13 +49,14 @@ df.to.list=function(dat) {  #only for id as col in dat
 }
 #------------------------------------------------
 traceplot=function(data, type, identity) {  #create traceplots for nbrks or LML for all IDs
+  par(mfrow=c(2,2))
   for (i in 1:length(identity)) {
     par(ask=TRUE)
     plot(x=1:ngibbs, y=data[i,-1], type = "l", xlab = "Iteration",
          ylab = ifelse(type == "nbrks", "# of Breakpoints", "Log Marginal Likelihood"),
          main = paste("ID",identity[i]))
   }
-  on.exit(par(ask = FALSE))
+  on.exit(par(ask = FALSE, mfrow=c(1,1)))
 }
 #---------------------------------------------
 getML=function(dat,nburn) {  #select ML value that is beyond burn-in phase
@@ -85,7 +86,7 @@ getBreakpts=function(dat,ML,identity) {  #extract breakpoints of ML per ID
   tmp
 }
 #------------------------------------------------
-plot.heatmap.loc=function(data, brkpts, dat.res) {
+plot.heatmap.loc=function(data, brkpts, dat.res, title, legend) {
   
   #re-define loc.id based only on those visited by this individual
   uni.loc=unique(data$loc.id)
@@ -114,32 +115,45 @@ plot.heatmap.loc=function(data, brkpts, dat.res) {
   names(breakpt)<- "breaks"
   
   
+  legend<- ifelse(legend == TRUE, "right", "none")
+  title<- ifelse(title == TRUE,
+                 list(theme(axis.title = element_text(size = 18),
+                            axis.text = element_text(size = 12),
+                            strip.text = element_text(size = 12, face = 'bold'),
+                            plot.title = element_text(size = 20), legend.position = legend)),
+                 list(theme(axis.title = element_text(size = 18),
+                            axis.text = element_text(size = 12),
+                            strip.text = element_text(size = 12, face = 'bold'),
+                            plot.title = element_blank(), legend.position = legend)))
+  
+  
   print(
     ggplot(obs.long, aes(x=time, y=key, fill=value)) +
       geom_tile() +
       scale_fill_viridis_d("") +
       scale_y_continuous(expand = c(0,0)) +
       scale_x_continuous(expand = c(0,0)) +
-      geom_vline(data = breakpt, aes(xintercept = breaks), color = viridis(n=9)[7], size = 0.35) +
-      labs(x = "Observations", y = "Grid Cell") +
+      geom_vline(data = breakpt, aes(xintercept = breaks), color = viridis(n=9)[7],
+                 size = 0.35) +
+      labs(x = "Observations", y = "Grid Cell", title = paste("ID", unique(data$id))) +
       theme_bw() +
-      theme(axis.title = element_text(size = 18), axis.text = element_text(size = 16),
-            title = element_text(size = 20)) +
-      labs(title = paste("ID", unique(data$id)))
+      title
   )
   
   
 }
 #------------------------------------------------
-plot.heatmap=function(data, brkpts, dat.res, type) {  #type can either be 'loc' or 'behav'
+plot.heatmap=function(data, brkpts, dat.res, type, title, legend) {  #type can either be 'loc' or 'behav'
   
   if (type == "loc") {
     par(ask = TRUE)
-    map(data, ~plot.heatmap.loc(., brkpts = brkpts, dat.res = dat.res))
+    map(data, ~plot.heatmap.loc(., brkpts = brkpts, dat.res = dat.res,
+                                title = title, legend = legend))
     par(ask = FALSE)
   } else if (type == "behav") {
     par(ask = TRUE)
-    map(data, ~plot.heatmap.behav(., brkpts = brkpts, dat.res = dat.res))
+    map(data, ~plot.heatmap.behav(., brkpts = brkpts, dat.res = dat.res,
+                                  title = title, legend = legend))
     par(ask = FALSE)
   } else {
     stop("Need to select type as either 'loc' or 'behav'")

@@ -129,7 +129,7 @@ quant.range2<- quant.range %>% top_n(n=-10, wt=dist)  #9.2 - 21.2 km
 
 
 #Set resolution
-res<- 7000  #min value of rnage
+res<- 7000  #min value of range
 buffer<- 2*res
 
 # 7 km w 1 cell buffer
@@ -141,7 +141,7 @@ grid[]<- 0
 dat$grid.cell<- cellFromXY(grid, dat[,c("x","y")])
 
 ### Write to CSV for further analysis
-write.csv(dat, "Snow Leopard Gridded Data.csv", row.names = F)
+# write.csv(dat, "Snow Leopard Gridded Data.csv", row.names = F)
 
 
 ### Plot all points over grid
