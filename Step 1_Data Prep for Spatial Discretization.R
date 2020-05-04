@@ -181,6 +181,6 @@ ggplot() +
   coord_sf(xlim = c(min(dat$x-20000), max(dat$x+20000)),
            ylim = c(min(dat$y-20000), max(dat$y+20000)), expand = FALSE) +
   geom_path(data = dat, aes(x=x, y=y, color = id), size = 0.5) +
-  scale_color_viridis_d("") +
+  scale_color_viridis_d("", guide=F) +
   labs(x = "Longitude", y = "Latitude") +
   theme_bw()

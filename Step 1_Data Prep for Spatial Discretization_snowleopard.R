@@ -17,7 +17,6 @@ library(adehabitatLT)
 #####################
 
 dat<- read.csv("Modified Snow Leopard Data.csv", header = T, sep = ",")
-levels(dat$id)[4:5]<- "Pari"
 
 #explore
 str(dat)
@@ -104,7 +103,7 @@ res.function=function(quant, dat.spdf, crs){
 }
 
 
-quant<- seq(0.01, 1.0, length.out = 100)
+quant<- seq(0.005, 0.7, length.out = 100)
 quant.range<- res.function(quant = quant, dat.spdf = dat.spdf, crs = proj4string(dat.spdf))
 quant.range[,2]<- quant.range[,2]/max(quant.range[,2])
 quant.range[,3]<- quant.range[,3]/max(quant.range[,3])
@@ -120,7 +119,7 @@ ggplot() +
   scale_color_viridis_c(direction = -1) +
   theme_bw()
 
-quant.range2<- quant.range %>% top_n(n=-10, wt=dist)  #9.2 - 21.2 km
+quant.range %>% top_n(n=-10, wt=dist)  #2.5 - 5.3 km
 
 
 
@@ -129,10 +128,10 @@ quant.range2<- quant.range %>% top_n(n=-10, wt=dist)  #9.2 - 21.2 km
 
 
 #Set resolution
-res<- 7000  #min value of range
+res<- 2500  #min value of range
 buffer<- 2*res
 
-# 7 km w 1 cell buffer
+# 2.5 km w 1 cell buffer
 grid<- raster(extent(dat.spdf) + buffer)
 res(grid)<- res
 proj4string(grid)<- CRS("+init=epsg:32643")
